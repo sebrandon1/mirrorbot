@@ -145,6 +145,7 @@ func handleMessageEvent(ev *slackevents.MessageEvent, api *slack.Client, botUser
 			if detail != nil && detail.PullSpec != "" {
 				msg += fmt.Sprintf("\nInstall: oc adm release extract --command=oc --from=%s", detail.PullSpec)
 			}
+			msg = ">```" + msg + "```"
 			fmt.Println(msg)
 			api.PostMessage(
 				ev.Channel,
