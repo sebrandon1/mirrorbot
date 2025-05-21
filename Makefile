@@ -1,9 +1,12 @@
 IMAGE_NAME ?= mirrorbot:latest
 
-.PHONY: build
+.PHONY: build vet
 
 build:
 	go build -o mirrorbot main.go
+
+vet:
+	go vet ./...
 
 docker-build: build
 	docker build -t $(IMAGE_NAME) .
@@ -16,4 +19,5 @@ run: docker-build
 	docker run --rm \
 	  -e SLACK_BOT_TOKEN=$(SLACK_BOT_TOKEN) \
 	  -e SLACK_APP_TOKEN=$(SLACK_APP_TOKEN) \
+	  -v $$HOME/.config/containers/auth.json:/auth.json:ro \
 	  $(IMAGE_NAME)

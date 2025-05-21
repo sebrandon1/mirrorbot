@@ -147,6 +147,24 @@ func handleMessageEvent(ev *slackevents.MessageEvent, api *slack.Client, botUser
 			if detail != nil && detail.PullSpec != "" {
 				msg += fmt.Sprintf("\nInstall: oc adm release extract --command=oc --from=%s", detail.PullSpec)
 			}
+
+			// // Skopeo image existence check for operator indexes
+			// images := map[string]string{
+			// 	"certified-operators": fmt.Sprintf("registry.redhat.io/redhat/certified-operator-index:v%s", version),
+			// 	"community-operators": fmt.Sprintf("registry.redhat.io/redhat/community-operator-index:v%s", version),
+			// 	"redhat-marketplace":  fmt.Sprintf("registry.redhat.io/redhat/redhat-marketplace-index:v%s", version),
+			// 	"redhat-operators":    fmt.Sprintf("registry.redhat.io/redhat/redhat-operator-index:v%s", version),
+			// }
+			// imageResults := ocpmirror.CheckImagesExist(images)
+			// msg += "\nOperator Index Images:"
+			// for name, result := range imageResults {
+			// 	if result.Exists {
+			// 		msg += fmt.Sprintf("\n:white_check_mark: %s: %s", name, result.Image)
+			// 	} else {
+			// 		msg += fmt.Sprintf("\n:red_circle: %s: %s", name, result.Image)
+			// 	}
+			// }
+
 			msg = ">```" + msg + "```"
 			fmt.Println(msg)
 			api.PostMessage(
