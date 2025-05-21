@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
+	"github.com/sebrandon1/mirrorbot/pkg/ocpmirror"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
@@ -56,9 +58,41 @@ func main() {
 }
 
 func handleMessageEvent(ev *slackevents.MessageEvent, api *slack.Client, botUserID string) {
+	// Ignore messages sent by the bot itself
+	if ev.User == botUserID {
+		return
+	}
 	// Print event info to the console for debugging
 	if containsMention(ev.Text, botUserID) {
 		fmt.Printf("Received MessageEvent: %+v\n", *ev)
+		// Parse for OCP version (e.g., "4.20")
+		fields := strings.Fields(ev.Text)
+		var version string
+		for _, f := range fields {
+			if strings.Count(f, ".") == 1 && strings.HasPrefix(f, "4.") {
+				version = f
+				break
+			}
+		}
+		if version != "" {
+			releases, err := ocpmirror.ListReleases(version)
+			if err != nil {
+				msg := fmt.Sprintf("Error fetching releases for %s: %v", version, err)
+				fmt.Println(msg)
+				_, _, _ = api.PostMessage(ev.Channel, slack.MsgOptionText(msg, false))
+				return
+			}
+			if len(releases) == 0 {
+				msg := fmt.Sprintf("No releases found for %s", version)
+				fmt.Println(msg)
+				_, _, _ = api.PostMessage(ev.Channel, slack.MsgOptionText(msg, false))
+				return
+			}
+			latest := releases[0]
+			msg := fmt.Sprintf("Latest %s release in %s: %s\nURL: %s", version, latest.Folder, latest.Version, latest.URL)
+			fmt.Println(msg)
+			_, _, _ = api.PostMessage(ev.Channel, slack.MsgOptionText(msg, false))
+		}
 	}
 }
 
