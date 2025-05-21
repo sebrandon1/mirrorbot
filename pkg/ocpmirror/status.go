@@ -14,6 +14,8 @@ type ReleaseStatus struct {
 	KubernetesVersion string // from components
 	RHCOSVersion      string // from components
 	RHCOSFrom         string // from components (from)
+	SucceededJobs     int    // total succeeded jobs
+	FailedJobs        int    // total failed jobs
 }
 
 type ReleaseStatusDetail struct {
@@ -43,6 +45,11 @@ func FetchReleaseStatus(version string) (*ReleaseStatus, error) {
 					From    string `json:"from"`
 				} `json:"components"`
 			} `json:"changeLogJson"`
+			Results struct {
+				InformingJobs map[string]struct {
+					State string `json:"state"`
+				} `json:"informingJobs"`
+			} `json:"results"`
 		}
 		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 			continue // try next path
@@ -57,6 +64,16 @@ func FetchReleaseStatus(version string) (*ReleaseStatus, error) {
 				rhcosFrom = c.From
 			}
 		}
+		// Count succeeded and failed jobs
+		succeeded, failed := 0, 0
+		for _, job := range data.Results.InformingJobs {
+			switch job.State {
+			case "Succeeded":
+				succeeded++
+			case "Failed":
+				failed++
+			}
+		}
 		return &ReleaseStatus{
 			Phase:             data.Phase,
 			Age:               data.Age,
@@ -64,6 +81,8 @@ func FetchReleaseStatus(version string) (*ReleaseStatus, error) {
 			KubernetesVersion: kubeVer,
 			RHCOSVersion:      rhcosVer,
 			RHCOSFrom:         rhcosFrom,
+			SucceededJobs:     succeeded,
+			FailedJobs:        failed,
 		}, nil
 	}
 	return nil, fmt.Errorf("release status not found in 4-dev-preview or 4-stable for %s", version)

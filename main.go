@@ -121,7 +121,7 @@ func handleMessageEvent(ev *slackevents.MessageEvent, api *slack.Client, botUser
 				} else {
 					msg += fmt.Sprintf("\nCreated: %s", status.Created)
 				}
-				msg += fmt.Sprintf("\nPhase: %s", status.Phase)
+				msg += fmt.Sprintf("\nPhase: %s (%d Pass / %d Fail)", status.Phase, status.SucceededJobs, status.FailedJobs)
 				if status.KubernetesVersion != "" {
 					kubeVer := status.KubernetesVersion
 					kubeVerParts := strings.SplitN(kubeVer, ".", 3)
