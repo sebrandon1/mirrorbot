@@ -8,10 +8,10 @@ build:
 vet:
 	go vet ./...
 
-docker-build: build
+docker-build:
 	docker build -t $(IMAGE_NAME) .
 
-run: docker-build
+run-image: docker-build
 	@if [ -z "$(SLACK_BOT_TOKEN)" ] || [ -z "$(SLACK_APP_TOKEN)" ]; then \
 	  echo "[WARNING] SLACK_BOT_TOKEN and/or SLACK_APP_TOKEN are not set. Please supply these environment variables."; \
 	  exit 1; \
@@ -19,5 +19,5 @@ run: docker-build
 	docker run --rm \
 	  -e SLACK_BOT_TOKEN=$(SLACK_BOT_TOKEN) \
 	  -e SLACK_APP_TOKEN=$(SLACK_APP_TOKEN) \
-	  -v $$HOME/.config/containers/auth.json:/auth.json:ro \
+	  # -v $$HOME/.config/containers/auth.json:/auth.json:ro \
 	  $(IMAGE_NAME)
