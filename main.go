@@ -106,10 +106,12 @@ func handleMessageEvent(ev *slackevents.MessageEvent, api *slack.Client, botUser
 				version, latest.Folder, latest.Version, latest.URL,
 			)
 			// Determine which stream was used for the release status
-			detailPageStream := "4-dev-preview"
-			if status != nil && status.Phase != "" {
-				// If status was found, try to infer the stream from the API call order
-				// (This is a simplification; for more accuracy, you could return the stream from FetchReleaseStatus)
+			// Try to infer the correct stream for the detail page link
+			stream := latest.Folder
+			if stream == "ocp-dev-preview" {
+				stream = "4-dev-preview"
+			} else if stream == "ocp" {
+				stream = "4-stable"
 			}
 			if status != nil {
 				createdTime, err := time.Parse(time.RFC3339, status.Created)
@@ -140,7 +142,7 @@ func handleMessageEvent(ev *slackevents.MessageEvent, api *slack.Client, botUser
 					}
 				}
 				// Add clickable link to release detail page
-				msg += fmt.Sprintf("\nClick <https://openshift-release.apps.ci.l2s4.p1.openshiftapps.com/releasestream/%s/release/%s|here> for release info", detailPageStream, latest.Version)
+				msg += fmt.Sprintf("\nClick <https://openshift-release.apps.ci.l2s4.p1.openshiftapps.com/releasestream/%s/release/%s|here> for release info", stream, latest.Version)
 			}
 			if detail != nil && detail.PullSpec != "" {
 				msg += fmt.Sprintf("\nInstall: oc adm release extract --command=oc --from=%s", detail.PullSpec)
