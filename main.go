@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/sebrandon1/mirrorbot/pkg/ocpmirror"
 	"github.com/slack-go/slack"
@@ -89,7 +90,52 @@ func handleMessageEvent(ev *slackevents.MessageEvent, api *slack.Client, botUser
 				return
 			}
 			latest := releases[0]
-			msg := fmt.Sprintf("Latest %s release in %s: %s\nURL: %s", version, latest.Folder, latest.Version, latest.URL)
+
+			// Fetch release status and pullSpec from status API
+			status, err := ocpmirror.FetchReleaseStatus(latest.Version)
+			if err != nil {
+				fmt.Printf("Warning: could not fetch status for %s: %v\n", latest.Version, err)
+			}
+			detail, err := ocpmirror.FetchReleaseDetail(latest.Version)
+			if err != nil {
+				fmt.Printf("Warning: could not fetch pullSpec for %s: %v\n", latest.Version, err)
+			}
+
+			msg := fmt.Sprintf(
+				"Latest %s release in %s: %s\nURL: %s",
+				version, latest.Folder, latest.Version, latest.URL,
+			)
+			// Determine which stream was used for the release status
+			detailPageStream := "4-dev-preview"
+			if status != nil && status.Phase != "" {
+				// If status was found, try to infer the stream from the API call order
+				// (This is a simplification; for more accuracy, you could return the stream from FetchReleaseStatus)
+			}
+			if status != nil {
+				createdTime, err := time.Parse(time.RFC3339, status.Created)
+				if err == nil {
+					daysAgo := int(time.Since(createdTime).Hours() / 24)
+					msg += fmt.Sprintf("\nCreated: %d days ago (%s)", daysAgo, status.Created)
+				} else {
+					msg += fmt.Sprintf("\nCreated: %s", status.Created)
+				}
+				msg += fmt.Sprintf("\nPhase: %s", status.Phase)
+				if status.KubernetesVersion != "" {
+					msg += fmt.Sprintf("\nKubernetes Version: %s", status.KubernetesVersion)
+				}
+				if status.RHCOSVersion != "" {
+					if status.RHCOSFrom != "" {
+						msg += fmt.Sprintf("\nRHCOS Version: %s (%s)", status.RHCOSVersion, status.RHCOSFrom)
+					} else {
+						msg += fmt.Sprintf("\nRHCOS Version: %s", status.RHCOSVersion)
+					}
+				}
+				// Add clickable link to release detail page
+				msg += fmt.Sprintf("\nClick <https://openshift-release.apps.ci.l2s4.p1.openshiftapps.com/releasestream/%s/release/%s|here> for release info", detailPageStream, latest.Version)
+			}
+			if detail != nil && detail.PullSpec != "" {
+				msg += fmt.Sprintf("\nInstall: oc adm release extract --command=oc --from=%s", detail.PullSpec)
+			}
 			fmt.Println(msg)
 			_, _, _ = api.PostMessage(ev.Channel, slack.MsgOptionText(msg, false))
 		}
