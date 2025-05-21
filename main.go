@@ -121,7 +121,16 @@ func handleMessageEvent(ev *slackevents.MessageEvent, api *slack.Client, botUser
 				}
 				msg += fmt.Sprintf("\nPhase: %s", status.Phase)
 				if status.KubernetesVersion != "" {
-					msg += fmt.Sprintf("\nKubernetes Version: %s", status.KubernetesVersion)
+					kubeVer := status.KubernetesVersion
+					kubeVerParts := strings.SplitN(kubeVer, ".", 3)
+					if len(kubeVerParts) >= 2 {
+						major := kubeVerParts[0]
+						minor := kubeVerParts[1]
+						kubeReleaseURL := fmt.Sprintf("https://kubernetes.io/releases/#release-v%s-%s", major, minor)
+						msg += fmt.Sprintf("\nKubernetes Version: <%s|%s>", kubeReleaseURL, kubeVer)
+					} else {
+						msg += fmt.Sprintf("\nKubernetes Version: %s", kubeVer)
+					}
 				}
 				if status.RHCOSVersion != "" {
 					if status.RHCOSFrom != "" {
@@ -137,7 +146,12 @@ func handleMessageEvent(ev *slackevents.MessageEvent, api *slack.Client, botUser
 				msg += fmt.Sprintf("\nInstall: oc adm release extract --command=oc --from=%s", detail.PullSpec)
 			}
 			fmt.Println(msg)
-			_, _, _ = api.PostMessage(ev.Channel, slack.MsgOptionText(msg, false))
+			api.PostMessage(
+				ev.Channel,
+				slack.MsgOptionText(msg, false),
+				slack.MsgOptionDisableLinkUnfurl(),
+				slack.MsgOptionDisableMediaUnfurl(),
+			)
 		}
 	}
 }
