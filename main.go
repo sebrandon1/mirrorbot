@@ -55,7 +55,10 @@ func main() {
 	}()
 
 	log.Println("Mirror Bot is running in Socket Mode...")
-	socketClient.Run()
+	err = socketClient.Run()
+	if err != nil {
+		log.Fatalf("Socket client failed: %v", err)
+	}
 }
 
 func handleMessageEvent(ev *slackevents.MessageEvent, api *slack.Client, botUserID string) {
@@ -108,9 +111,10 @@ func handleMessageEvent(ev *slackevents.MessageEvent, api *slack.Client, botUser
 			// Determine which stream was used for the release status
 			// Try to infer the correct stream for the detail page link
 			stream := latest.Folder
-			if stream == "ocp-dev-preview" {
+			switch stream {
+			case "ocp-dev-preview":
 				stream = "4-dev-preview"
-			} else if stream == "ocp" {
+			case "ocp":
 				stream = "4-stable"
 			}
 			if status != nil {
@@ -165,14 +169,17 @@ func handleMessageEvent(ev *slackevents.MessageEvent, api *slack.Client, botUser
 			// 	}
 			// }
 
-			msg = ">```" + msg + "```"
+			msg = ">```" + msg + "```"
 			fmt.Println(msg)
-			api.PostMessage(
+			_, _, err = api.PostMessage(
 				ev.Channel,
 				slack.MsgOptionText(msg, false),
 				slack.MsgOptionDisableLinkUnfurl(),
 				slack.MsgOptionDisableMediaUnfurl(),
 			)
+			if err != nil {
+				fmt.Printf("Error posting message to Slack: %v\n", err)
+			}
 		}
 	}
 }
