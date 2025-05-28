@@ -31,7 +31,12 @@ func FetchReleaseStatus(version string) (*ReleaseStatus, error) {
 		if err != nil {
 			continue // try next path
 		}
-		defer resp.Body.Close()
+		defer func() {
+			err := resp.Body.Close()
+			if err != nil {
+				fmt.Printf("Error closing response body: %v\n", err)
+			}
+		}()
 		var data struct {
 			Phase         string `json:"phase"`
 			Age           string `json:"age"`
@@ -97,7 +102,12 @@ func FetchReleaseDetail(version string) (*ReleaseStatusDetail, error) {
 		if err != nil {
 			continue // try next path
 		}
-		defer resp.Body.Close()
+		defer func() {
+			err := resp.Body.Close()
+			if err != nil {
+				fmt.Printf("Error closing response body: %v\n", err)
+			}
+		}()
 		var data struct {
 			PullSpec string `json:"pullSpec"`
 		}

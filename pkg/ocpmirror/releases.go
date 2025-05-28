@@ -29,7 +29,12 @@ func ListReleases(version string) ([]ReleaseInfo, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch %s: %w", url, err)
 		}
-		defer resp.Body.Close()
+		defer func() {
+			err := resp.Body.Close()
+			if err != nil {
+				fmt.Printf("Error closing response body: %v\n", err)
+			}
+		}()
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read body: %w", err)

@@ -1,12 +1,18 @@
 IMAGE_NAME ?= mirrorbot:latest
 
-.PHONY: build vet
+.PHONY: build vet lint test
 
 build:
 	go build -o mirrorbot main.go
 
 vet:
 	go vet ./...
+
+lint:
+	golangci-lint run ./...
+
+test:
+	go test ./...
 
 docker-build:
 	docker build -t $(IMAGE_NAME) .
