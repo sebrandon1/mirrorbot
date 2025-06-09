@@ -18,6 +18,28 @@ type ReleaseStatus struct {
 	FailedJobs        int    // total failed jobs
 }
 
+// ReleaseStatusAPIResponse represents the JSON structure returned by the OCP release status API.
+type ReleaseStatusAPIResponse struct {
+	Phase         string `json:"phase"`
+	Age           string `json:"age"`
+	ChangeLogJson struct {
+		To struct {
+			Created string `json:"created"`
+		} `json:"to"`
+		Components []struct {
+			Name    string `json:"name"`
+			Version string `json:"version"`
+			From    string `json:"from"`
+		} `json:"components"`
+	} `json:"changeLogJson"`
+	Results struct {
+		InformingJobs map[string]struct {
+			State string `json:"state"`
+		} `json:"informingJobs"`
+	} `json:"results"`
+}
+
+// ReleaseStatusDetail holds the detailed information for a release, such as the pullSpec.
 type ReleaseStatusDetail struct {
 	PullSpec string `json:"pullSpec"`
 }
@@ -32,30 +54,9 @@ func FetchReleaseStatus(version string) (*ReleaseStatus, error) {
 			continue // try next path
 		}
 		defer func() {
-			err := resp.Body.Close()
-			if err != nil {
-				fmt.Printf("Error closing response body: %v\n", err)
-			}
+			_ = resp.Body.Close()
 		}()
-		var data struct {
-			Phase         string `json:"phase"`
-			Age           string `json:"age"`
-			ChangeLogJson struct {
-				To struct {
-					Created string `json:"created"`
-				} `json:"to"`
-				Components []struct {
-					Name    string `json:"name"`
-					Version string `json:"version"`
-					From    string `json:"from"`
-				} `json:"components"`
-			} `json:"changeLogJson"`
-			Results struct {
-				InformingJobs map[string]struct {
-					State string `json:"state"`
-				} `json:"informingJobs"`
-			} `json:"results"`
-		}
+		var data ReleaseStatusAPIResponse
 		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 			continue // try next path
 		}
