@@ -4,7 +4,7 @@ A Slack bot for querying OpenShift release status and details.
 
 ## Prerequisites
 
-- Go 1.24+ (for local development)
+- Go 1.25+ (for local development)
 - Docker (for containerized runs)
 - [Slack App](https://api.slack.com/apps) with:
   - Bot Token (`SLACK_BOT_TOKEN`)
