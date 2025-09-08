@@ -1,6 +1,6 @@
 module github.com/sebrandon1/mirrorbot
 
-go 1.25.0
+go 1.25.1
 
 require (
 	github.com/gorilla/websocket v1.4.2 // indirect
