@@ -5,7 +5,7 @@ WORKDIR /app
 COPY . .
 RUN go build -o mirrorbot main.go
 
-FROM --platform=$TARGETPLATFORM alpine:3.22
+FROM --platform=$TARGETPLATFORM alpine:3.23
 
 # Install Skopeo and ca-certificates
 RUN apk add --no-cache skopeo ca-certificates
