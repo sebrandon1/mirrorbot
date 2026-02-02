@@ -22,19 +22,30 @@ go run main.go
 
 ### Docker Build
 ```bash
-docker build -t mirrorbot .
+make docker-build
+make run-image
 ```
 
-### Lint
+### Test
+```bash
+make test
+```
+
+### Lint and Vet
 ```bash
 make lint
+make vet
 ```
 
 ## Architecture
 
-- **`main.go`** - Application entry point and Slack bot logic
-- **`pkg/`** - Reusable packages for OCP mirror interactions
+- **`main.go`** - Application entry point, Slack Socket Mode handler, message parsing
+- **`pkg/ocpmirror/`** - OCP mirror interaction package:
+  - `releases.go` - Fetches available releases from mirror.openshift.com
+  - `status.go` - Fetches release status/details from OCP release API
+  - `skopeo.go` - Image existence checking
 - **`Dockerfile`** - Container image definition
+- **`Makefile`** - Build, lint, test, and Docker targets
 
 ## Environment Variables
 
