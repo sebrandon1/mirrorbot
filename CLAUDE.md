@@ -56,7 +56,7 @@ make vet
 
 ## Requirements
 
-- Go 1.25+
+- Go 1.26+
 - [Slack App](https://api.slack.com/apps) with Socket Mode enabled
 - Docker (for containerized runs)
 
