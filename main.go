@@ -1,3 +1,20 @@
+// Package main is the entry point for mirrorbot.
+//
+// Related public projects in the sebrandon1 organization:
+//   - https://github.com/sebrandon1/bps-operator
+//   - https://github.com/sebrandon1/compliance-operator-dashboard
+//   - https://github.com/sebrandon1/go-dci
+//   - https://github.com/sebrandon1/go-enphase
+//   - https://github.com/sebrandon1/go-quay
+//   - https://github.com/sebrandon1/go-skylight
+//   - https://github.com/sebrandon1/grab
+//   - https://github.com/sebrandon1/imagecertinfo-operator
+//   - https://github.com/sebrandon1/jiracrawler
+//   - https://github.com/sebrandon1/skylight-bridge
+//   - https://github.com/sebrandon1/testapp
+//   - https://github.com/sebrandon1/tls-compliance-operator
+//   - https://github.com/sebrandon1/yaml-to-readme
+//   - https://github.com/sebrandon1/ztp-dashboard
 package main
 
 import (
@@ -155,23 +172,6 @@ func handleMessageEvent(ev *slackevents.MessageEvent, api *slack.Client, botUser
 				msg += fmt.Sprintf("\nInstall: oc adm release extract --command=oc --from=%s", detail.PullSpec)
 			}
 
-			// // Skopeo image existence check for operator indexes
-			// images := map[string]string{
-			// 	"certified-operators": fmt.Sprintf("registry.redhat.io/redhat/certified-operator-index:v%s", version),
-			// 	"community-operators": fmt.Sprintf("registry.redhat.io/redhat/community-operator-index:v%s", version),
-			// 	"redhat-marketplace":  fmt.Sprintf("registry.redhat.io/redhat/redhat-marketplace-index:v%s", version),
-			// 	"redhat-operators":    fmt.Sprintf("registry.redhat.io/redhat/redhat-operator-index:v%s", version),
-			// }
-			// imageResults := ocpmirror.CheckImagesExist(images)
-			// msg += "\nOperator Index Images:"
-			// for name, result := range imageResults {
-			// 	if result.Exists {
-			// 		msg += fmt.Sprintf("\n:white_check_mark: %s: %s", name, result.Image)
-			// 	} else {
-			// 		msg += fmt.Sprintf("\n:red_circle: %s: %s", name, result.Image)
-			// 	}
-			// }
-
 			msg = ">```" + msg + "```"
 			fmt.Println(msg)
 			_, _, err = api.PostMessage(
@@ -188,7 +188,7 @@ func handleMessageEvent(ev *slackevents.MessageEvent, api *slack.Client, botUser
 }
 
 func containsMention(text, botUserID string) bool {
-	return (botUserID != "" && (containsIgnoreCase(text, "@mirrorbot") || containsIgnoreCase(text, "<@"+botUserID+">")))
+	return (botUserID != "" && (containsIgnoreCase(text, "@mirrorbot") || containsIgnoreCase(text, "<@"+botUserID+">>")))
 }
 
 func containsIgnoreCase(s, substr string) bool {
