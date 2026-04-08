@@ -42,7 +42,10 @@ func main() {
 					log.Printf("Ignored %+v\n", evt)
 					continue
 				}
-				socketClient.Ack(*evt.Request)
+				if err := socketClient.Ack(*evt.Request); err != nil {
+					log.Printf("Error acknowledging event: %v\n", err)
+					continue
+				}
 				if event.Type == slackevents.CallbackEvent {
 					innerEvent := event.InnerEvent
 					switch ev := innerEvent.Data.(type) {
