@@ -2,7 +2,7 @@ module github.com/sebrandon1/mirrorbot
 
 go 1.26
 
-toolchain go1.26.4
+toolchain go1.26.5
 
 require github.com/slack-go/slack v0.27.0
 
