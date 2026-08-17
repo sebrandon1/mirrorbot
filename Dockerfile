@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM --platform=$BUILDPLATFORM golang:1.27rc2-alpine AS builder
+FROM --platform=$BUILDPLATFORM golang:1.27rc3-alpine AS builder
 
 WORKDIR /app
 COPY . .
