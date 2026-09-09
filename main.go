@@ -58,9 +58,9 @@ func main() {
 	}()
 
 	log.Println("Mirror Bot is running in Socket Mode...")
-	err = socketClient.Run()
-	if err != nil {
-		log.Fatalf("Socket client failed: %v", err)
+	//nolint:staticcheck // Run returns an error interface whose nil check is valid.
+	if runErr := socketClient.Run(); runErr != nil {
+		log.Fatalf("Socket client failed: %v", runErr)
 	}
 }
 
