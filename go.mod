@@ -1,6 +1,6 @@
 module github.com/sebrandon1/mirrorbot
 
-go 1.27.1
+go 1.27.3
 
 require github.com/slack-go/slack v0.30.1
 
