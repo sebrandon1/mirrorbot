@@ -1,7 +1,7 @@
 package ocpmirror
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"net/http"
 )
@@ -49,15 +49,8 @@ func FetchReleaseStatus(version string) (*ReleaseStatus, error) {
 	paths := []string{"4-dev-preview", "4-stable"}
 	for _, path := range paths {
 		url := fmt.Sprintf("https://openshift-release.apps.ci.l2s4.p1.openshiftapps.com/api/v1/releasestream/%s/release/%s", path, version)
-		resp, err := http.Get(url)
-		if err != nil {
-			continue // try next path
-		}
-		defer func() {
-			_ = resp.Body.Close()
-		}()
 		var data ReleaseStatusAPIResponse
-		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		if err := httpClient.DoJSON(context.Background(), http.MethodGet, url, nil, &data); err != nil {
 			continue // try next path
 		}
 		var kubeVer, rhcosVer, rhcosFrom string
@@ -99,20 +92,8 @@ func FetchReleaseDetail(version string) (*ReleaseStatusDetail, error) {
 	paths := []string{"4-dev-preview", "4-stable"}
 	for _, path := range paths {
 		url := fmt.Sprintf("https://openshift-release.apps.ci.l2s4.p1.openshiftapps.com/api/v1/releasestream/%s/release/%s", path, version)
-		resp, err := http.Get(url)
-		if err != nil {
-			continue // try next path
-		}
-		defer func() {
-			err := resp.Body.Close()
-			if err != nil {
-				fmt.Printf("Error closing response body: %v\n", err)
-			}
-		}()
-		var data struct {
-			PullSpec string `json:"pullSpec"`
-		}
-		if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		var data ReleaseStatusDetail
+		if err := httpClient.DoJSON(context.Background(), http.MethodGet, url, nil, &data); err != nil {
 			continue // try next path
 		}
 		return &ReleaseStatusDetail{PullSpec: data.PullSpec}, nil
