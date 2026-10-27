@@ -1,16 +1,25 @@
 package ocpmirror
 
 import (
+	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"regexp"
 	"sort"
+	"time"
+
+	"github.com/sebrandon1/go-toolbox/httpx"
 )
 
 const (
 	MirrorsBaseURL = "https://mirror.openshift.com/pub/openshift-v4/clients/"
 )
+
+// httpClient is shared by all OCP mirror API calls. It bounds request duration,
+// caps response sizes, and turns non-2xx responses into typed errors.
+var httpClient = httpx.NewClient(httpx.Options{
+	Timeout: 30 * time.Second,
+})
 
 // ReleaseInfo holds information about a found OCP release.
 type ReleaseInfo struct {
@@ -25,19 +34,24 @@ func ListReleases(version string) ([]ReleaseInfo, error) {
 	var releases []ReleaseInfo
 	for _, folder := range folders {
 		url := MirrorsBaseURL + folder + "/"
-		resp, err := http.Get(url)
+		req, err := httpClient.NewRequest(context.Background(), http.MethodGet, url, nil)
 		if err != nil {
 			return nil, fmt.Errorf("failed to fetch %s: %w", url, err)
 		}
-		defer func() {
-			err := resp.Body.Close()
-			if err != nil {
-				fmt.Printf("Error closing response body: %v\n", err)
-			}
-		}()
-		body, err := io.ReadAll(resp.Body)
+		resp, err := httpClient.Do(req)
+		if err != nil {
+			return nil, fmt.Errorf("failed to fetch %s: %w", url, err)
+		}
+		body, err := httpx.ReadLimited(resp.Body, httpClient.MaxResponseBytes)
+		closeErr := resp.Body.Close()
 		if err != nil {
 			return nil, fmt.Errorf("failed to read body: %w", err)
+		}
+		if closeErr != nil {
+			fmt.Printf("Error closing response body: %v\n", closeErr)
+		}
+		if err := httpx.CheckStatus(resp, body); err != nil {
+			return nil, fmt.Errorf("failed to fetch %s: %w", url, err)
 		}
 		// Find all subfolders matching the version (e.g., 4.20.0-0.nightly-*)
 		// This regex will match folder names like 4.20.0-0.nightly-2024-05-20-123456
