@@ -3,7 +3,7 @@ module github.com/sebrandon1/mirrorbot
 go 1.27.3
 
 require (
-	github.com/sebrandon1/go-toolbox v0.1.1
+	github.com/sebrandon1/go-toolbox v0.1.2
 	github.com/slack-go/slack v0.33.0
 )
 
